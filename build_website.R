@@ -19,7 +19,7 @@ system( paste0("staticrypt ./docs/journal.html ", Sys.getenv("LAB_KEY")) )
 
 # Remove and rename resulting files
 file.remove("./docs/journal.html")
-file.rename(from = "./docs/journal_encrypted.html", 
+file.rename(from = "./docs/journal_encrypted.html",
             to   = "./docs/journal.html")
 
 # Open local html file in your browser
