@@ -265,20 +265,6 @@ sales_by_loc_year_tbl <- bike_orderlines_wrangled_tbl %>%
                                      suffix = " €"))
 
 sales_by_loc_year_tbl
-# A tibble: 60 x 4
-##   state                          year   sales sales_text 
-##   <chr>                         <dbl>   <dbl> <chr>      
-## 1 Baden-Württemberg              2015 1031924 1.031.924 €
-## 2 Bavaria                        2015 1301461 1.301.461 €
-## 3 Berlin                         2015   95853 95.853 €   
-## 4 Bremen                         2015 1395912 1.395.912 €
-## 5 Hamburg                        2015  423090 423.090 €  
-## 6 Hesse                          2015  308609 308.609 €  
-## 7 Lower Saxony                   2015  584386 584.386 €  
-## 8 Mecklenburg-Western Pomerania  2015  222003 222.003 €  
-## 9 North Rhine-Westphalia         2015 3735092 3.735.092 €
-##10 Saxony                         2015  238371 238.371 €  
-# … with 50 more rows
 ```
 
 
