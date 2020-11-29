@@ -24,7 +24,7 @@ The journal is divided into sections: one for each assignment (coding challenge)
 
 Thank you, and I hope this is of any use to you. Enjoy!
 
-# Assignment No. 1
+# **Assignment No. 1**
 
 *Last compiled:* **`r Sys.Date()`**
 
@@ -104,8 +104,8 @@ bikeshops_tbl  <- read_excel("../00_data/01_bike_sales/01_raw_data/bikeshops.xls
 
 It's a good practice to take a look and get afeel of the data by examining it. I find two methods to be the most useful:
 <ul>
-<li>*Method 1*: Printing it to the console</li>
-<li>*Method 2*: Running `glimpse()` function - helpful for wide data (data with many columns)</li>
+<li>*Method 1*: Printing it to the console.</li>
+<li>*Method 2*: Running `glimpse()` function - helpful for wide data (data with many columns).</li>
 </ul>
 
 **Method 1**
@@ -306,9 +306,178 @@ sales_by_loc_year_tbl %>%
 
 
 
-# Assignment No. 2
+# **Assignment No. 2**
 
-Write text here...
+This assignment had two objectives:
+<ul>
+<li>*Objective 1*: Request data via a public API.</li>
+<li>*Objective 2*: Scrape web of one of the competitors of Canyon Bikes and create a small database. The database should contain the model names and prices for at least one category.</li>
+</ul>
+
+
+## Step 1: Load libraries
+
+As a first step, please load `tidyverse`, `readxl`, and `lubridate` libraries. For details on what these libraries offer, please refer to the comments in the code block below.
+
+```{r}
+# STEP 1: Load Libraries ---
+# Work with File System
+library(fs)           # working with the file system
+
+# Tidy, Transform, & Visualize
+library(tidyverse)
+#  library(tibble)    --> is a modern re-imagining of the data frame
+#  library(readr)     --> provides a fast and friendly way to read rectangular data like csv
+#  library(dplyr)     --> provides a grammar of data manipulation
+#  library(magrittr)  --> offers a set of operators which make your code more readable (pipe operator)
+#  library(tidyr)     --> provides a set of functions that help you get to tidy data
+#  library(stringr)   --> provides a cohesive set of functions designed to make working with strings easy
+#  library(ggplot2)   --> graphics
+
+library(RSQLite)        # Database Connection
+library(httr)           # Make HTTP Requests
+library(glue)           # String Interpolation
+library(jsonlite)       # JSON Conversions
+library(stringr)        # Wrappers for Common String Operators
+library(rvest)          # Wrappers to Download, Manipulate HTML/XML
+library(purrr)          # Functional Programming Toolkit for R
+```
+
+If you haven't installed these packages, please install them by calling `install.packages(`*[name_of_package]*`)` in the R console. After installing, run the above code block again.
+
+
+## Challenge 1: API Request
+
+The goal of this challenge is to access web data that is stored in a remote server
+
+Typically, data is in `json`,`xml`, or `html` format. It consists of an exposed file path, which is nothing but the URL to access the web data. It is referred to as an API (application programming interface). We invoke/consume the corresponding API using HTTP clients in R when wanting to access data. HTTP is designed to enable communications between clients and servers. Request actions commonly used are: `GET` and `POST`. APIs offer data scientists a polished way to request clean and curated data from a website.
+
+For this challenge, I used the iTunes Search API. For more details on what you can and can't do, please visit their website: https://affiliate.itunes.apple.com/resources/documentation/itunes-store-web-service-search-api/.
+
+I decided to pull information about the famous trap artist, Bad Bunny and limit the results to 25. For this, I built a simple API wrapper function where I `path` and `queries` as arguments to the function. The wrapper function includes error checking, where it automatically throws an error if a request did not succeed.
+
+
+```{r}
+# response <- GET("https://itunes.apple.com/search?term=bad+bunny&limit=25")
+# However, it's best to wrap into a function
+itunes_search_api <- function(path, query) {
+  url <- modify_url(url = "https://itunes.apple.com", 
+                    path = glue("/{path}"), 
+                    query = glue("{query}"))
+  response <- GET(url)
+  stop_for_status(response) # automatically throws an error if a request did not succeed
+}
+
+# Searches for all Bad Bunny audio and video content and return only the first 25 items
+response <- itunes_search_api("search", paste("term=bad+bunny","limit=25",sep="&"))
+
+# Convert JSON as text into a nested list object and convert to tibble
+response_tbl <- fromJSON(content(response, as = "text")) %>%
+  map_if(is.data.frame, list) %>%
+  as_tibble() %>%
+  unnest(cols = c(results))
+```
+
+
+## Challenge 2: HTML Web Scraping
+
+As part of this challenge, I scraped the web of one of the competitors of Canyon Bikes and created a small database. The database is in the form a tibble and can be seen below. It contains the model names and prices for one of bike categories. In this case, I chose to output the data for their road bikes.
+
+To get a good understanding of the website structure, I used `selectorgadget` by saving the following code as a bookmark in my web browser:
+```
+javascript:(function()%7Bvar s=document.createElement('div');s.innerHTML='Loading...';s.style.color='black';s.style.padding='20px';s.style.position='fixed';s.style.zIndex='9999';s.style.fontSize='3.0em';s.style.border='2px solid black';s.style.right='40px';s.style.top='40px';s.setAttribute('class','selector_gadget_loading');s.style.background='white';document.body.appendChild(s);s=document.createElement('script');s.setAttribute('type','text/javascript');s.setAttribute('src','https://dv0akt2986vzh.cloudfront.net/unstable/lib/selectorgadget.js');document.body.appendChild(s);%7D)();
+```
+
+In general, web scraping in R (or in any other language) boils down to the following three steps:
+<ul>
+<li>Get the HTML for the web page that you want to scrape.</li>
+<li>Decide what part of the page you want to read and find out what HTML/CSS you need to select it.</li>
+<li>Select the HTML and analyze it in the way you need.</li>
+</ul>
+
+
+```{r}
+url_home <- "https://www.rosebikes.com"
+# To open links directly from RStudio to inspect them with 'selectorgadget' pass value to xopen() i.e. xopen(url_home)
+
+# Read in the HTML for the entire web page
+html_home <- read_html(url_home)
+# Web scrape for the families of bikes
+rosebike_category_tbl <- html_home %>%
+  # Get the nodes for the families ...
+  html_nodes(css = ".main-navigation-category-with-tiles__link") %>%
+  #html_nodes(xpath = '//*[contains(concat( " ", @class, " " ), concat( " ", "main-navigation-category-with-tiles__link", " " ))]') %>%
+  # ...and extract the information from href attribute
+  html_attr('href') %>%
+  # Remove the product family sale because these are repeat listings
+  #~str_detect("sale")
+  grep(paste("/bikes/sale", collapse = "|"), ., invert = TRUE, value = TRUE) %>%
+  
+  #discard(., .p =~ str_detect(.,"/bikes/sale")) %>%
+  # Convert vector to tibble
+  enframe(name = "position", value = "Category_Path") %>%
+  # Add a new column with family name
+  mutate(Category_Name = stringr::str_replace(Category_Path,"/bikes/",""))
+
+rosebike_category_tbl
+
+# Code below scrapes web data from ROSE's Road Bikes
+# Create new url by appending '/'bikes/road' to original url -- url_home
+rosebike_road_category_url <- str_c(url_home,rosebike_category_tbl$Category_Path[2])
+
+# Read in the HTML for the category web page
+html_road_bike_category <- read_html(rosebike_road_category_url)
+
+rosebike_model_names <- html_road_bike_category %>%
+  # Get the nodes for the model names ...
+  html_nodes(css = '.catalog-category-bikes__title-text') %>%
+  # ...and extract the text information while trimming leading and trailing spaces
+  html_text(trim = TRUE) %>%
+  # Convert vector to tibble
+  enframe(name = "position", value = "Model_Name") %>%
+  # Add a new column to add category name
+  mutate(Category_Name = toupper(rosebike_category_tbl$Category_Name[2]))
+# Print ROSE's Road Bikes model names
+rosebike_model_names
+
+rosebike_model_prices <- html_road_bike_category %>%
+  # Get the nodes for the model prices ...
+  html_nodes(css = '.catalog-category-bikes__price-title') %>%
+  # ...and extract the text information while trimming leading and trailing spaces
+  html_text(trim = TRUE) %>%
+  # Use regex to extract the prices from the text
+  str_extract(pattern = "\\d{1,3}\\,?\\d{3}\\.?\\d{1,2}") %>%
+  # Convert the result into number
+  parse_number() %>%
+  # Convert vector to tibble
+  enframe(name = "position", value = "Price") %>%
+  # Add a new column to turn the price numbers into a currency format 
+  mutate(Price_Text = scales::dollar(Price, big.mark = ".", 
+                                   decimal.mark = ",", 
+                                   prefix = "", 
+                                   suffix = " €"))
+# Print ROSE's Road Bikes model prices
+rosebike_model_prices
+
+# Join tables together for one final table
+rosebike_cat_mdl_price_joined <- left_join(rosebike_model_names,rosebike_model_prices)
+
+# Output the FINAL tibble of ROSE's bikes with model, category, and price as columns
+rosebike_cat_mdl_price_joined
+```
+
+
+The code shown above is merely an introduction to web scraping static sites with the use `rvest` library. However, keep in mind many web pages are dynamic and use JavaScript to load their content.These websites often require a different approach to gather the data and `rvest` library would not suffice.
+
+Things to keep in mind...
+<ul>
+<li>*Static & Well Structured*: Web scraping is best suited for static & well structured web pages.</li>
+<li>*Code Changes*: The underling HTML code of a web page can change anytime due to changes in design or for updating details. In such case, your script will stop working. It is important to identify changes to the web page and modify the web scraping script accordingly.</li>
+<li>*API Availability*: In many cases, an API is made available by the service provider or organization. It is always advisable to use the API and avoid web scraping.</li>
+<li>*IP Blocking*: Have some time gap between request so that your IP address is not blocked from accessing the website. Of course, you can also learn to work your way around the anti scraping methods. However, you do need to understand the legality of scraping data and whatever you are doing with the scraped data: http://www.prowebscraper.com/blog/six-compelling-facts-about-legality-of-web-scraping/
+</li>
+</ul>
+
 
 # Assignment No. 3
 
