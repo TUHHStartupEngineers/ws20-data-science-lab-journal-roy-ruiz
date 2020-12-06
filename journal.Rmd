@@ -1,5 +1,5 @@
 ---
-title: "Journal (reproducible report)"
+title: "Journal (Reproducible Report)"
 author: "Roy Ruiz"
 date: "2020-12-06"
 output:
@@ -18,9 +18,7 @@ knitr::opts_chunk$set(message=FALSE,warning=FALSE, cache=TRUE)
 
 **BUSINESS DATA SCIENCE BASICS**
 
-This is an `.Rmd` file where all my work in R is recorded. The journal will consist of plain text, code blocks, and graphs/plots to illustrate completeness of the code.
-
-The journal is divided into sections: one for each assignment (coding challenge). If you want to jump to a specific assignment, please refer to the table of contents in the top left part of the page.
+You are seeing an `HTML` output of my `.Rmd` markdown file where all my work in R is recorded. The journal will consist of plain text, code blocks, and graphs/plots to illustrate completeness of the code.The journal is divided into sections: one for each assignment (coding challenge). If you want to jump to a specific assignment, please refer to the table of contents in the top left part of the page.
 
 Thank you, and I hope this is of any use to you. Enjoy!
 
@@ -211,11 +209,8 @@ sales_by_loc_tbl %>%
   # Setup canvas with the columns state (x-axis) and sales (y-axis)
   # States are reordered in decreasing sales for a better visual (e.g. similar to Pareto chart)
   ggplot(aes(x = reorder(state,-sales), y = sales)) +
-  # Rotate the x-axis labels
-  theme(axis.title.x = element_text(), axis.text.x = element_text(angle = 45, hjust = 1)) +
-  
   # Geometries
-  geom_col(fill = "#2D303E") + # Use geom_col for a bar plot and fill with color
+  geom_col(fill = "#87535F") + # Use geom_col for a bar plot and fill with color
   # Adding labels to the bars along with formatting for better presentation
   geom_text(aes(label = sales_text), position = position_dodge(width = 0.9), 
           hjust = -0.1, size = 2.5, show.legend = FALSE, angle = 90) +
@@ -232,7 +227,12 @@ sales_by_loc_tbl %>%
   labs(title    = "Revenue by State",
        subtitle = "Ordered from most to least total revenue",
        x = "State", # Changes the x-axis name
-       y = "Revenue")
+       y = "Revenue") +
+  theme_minimal() +
+  # Rotate the x-axis labels and format other theme elements
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(face = "bold"),
+        axis.text = element_text(size = "10"))
 ```
 
 
@@ -309,6 +309,9 @@ sales_by_loc_year_tbl %>%
 
 # **Assignment No. 2**
 
+*Last compiled:* **`r Sys.Date()`**
+
+
 This assignment had two objectives:
 <ul>
 <li>*Objective 1*: Request data via a public API.</li>
@@ -377,6 +380,8 @@ response_tbl <- fromJSON(content(response, as = "text")) %>%
   map_if(is.data.frame, list) %>%
   as_tibble() %>%
   unnest(cols = c(results))
+
+response_tbl
 ```
 
 
@@ -480,6 +485,9 @@ The code shown above is merely an introduction to web scraping static sites with
 
 
 # **Assignment No. 3**
+
+*Last compiled:* **`r Sys.Date()`**
+
 
 The main objective of this challenge is to perform analysis on publicly available patent data. Patents play a critical role in incentivizing innovation, without which we would not have much of the technology we rely on everyday. A patent provides its owner with the ability to make money off of something that they invented, without having to worry about someone else copying their technology.
 
@@ -625,7 +633,7 @@ uspc_data <- vroom(
 ```
 
 
-## Step 3: Wrangle Analyze the data
+## Step 3: Wrangle and Analyze the data
 
 Next, I performed some minor changes to the data in order to prepare them for joining `dplyr` operations. Please note `dplyr` is loaded when you load the `tidyverse` library during step 1.
 
@@ -693,6 +701,7 @@ result <- read_rds("temp_results/result5.rds")
 result
 ```
 
+
 ### Recent Patent Activity (Question 2)
 
 ```{r calculation, eval=FALSE}
@@ -746,6 +755,7 @@ result <- read_rds("temp_results/result6.rds")
 
 result
 ```
+
 
 ### Innovation in Tech (Question 3)
 
@@ -804,36 +814,192 @@ result <- read_rds("temp_results/result7.rds")
 result
 ```
 
-# Assignment No. 4
 
-Write text here...
+# **Assignment No. 4**
 
-
-
-## Second level header
-
-You can add more headers by adding more hashtags. These won't be put into the table of contents
-
-### third level header
+*Last compiled:* **`r Sys.Date()`**
 
 
-Here's an even lower level header
+The main objective of this challenge is to visualize data in an informative way for the reader to digest. As we know, COVID-19 has hit the entire world by a storm in 2020. Many people have been affected, and sadly, many lives have been lost due to this virus. In some countries, it is considered the leading cause of death.
 
-# My second post (note the order)
+For that, I have decided to perform insightful visualizations from the publicly available data found here: <a href="https://opendata.ecdc.europa.eu/covid19/casedistribution/csv">https://opendata.ecdc.europa.eu/covid19/casedistribution/csv</a>
 
-Last compiled: `r Sys.Date()`
+The `ggplot2` library is used for all plots. It's very powerful, so use it wisely! ;) Think of it like building layers of a cake. Each layer is added on top of the other.
 
-I'm writing this tutorial going from the top down. And, this is how it will be printed. So, notice the second post is second in the list. If you want your most recent post to be at the top, then make a new post starting at the top. If you want the oldest first, do, then keep adding to the bottom
+As a general rule of thumb, it's important to follow these steps for data visualization:
 
-# Adding R stuff
+<ul>
+<li>*Prepare your data*: This inclusive of all data wrangling necessary for your data to be ready for plotting.</li>
+<li>*Set up  your canvas*: This is done with aesthetic mappings, which describe how variables/ columns in the data are mapped to visual properties (aesthetics) of geometries (e.g. scatterplot, boxplot, histograms, etc.)</li>
+<li>*Use the right geometries for visualization*: This will allow you to depict your data visually with the use of geometry types. `Geometries` are the fundamental way to represent data in your plot.</li>
+<li>*Perform final formatting touches*: This allows your plot to be visually pleasing and easy to digest by the reader. You can ensure consistency across all your plot elements.</li>
+</ul>
 
-So far this is just a blog where you can write in plain text and serve your writing to a webpage. One of the main purposes of this lab journal is to record your progress learning R. The reason I am asking you to use this process is because you can both make a website, and a lab journal, and learn R all in R-studio. This makes everything really convenient and in the same place.
 
-So, let's say you are learning how to make a histogram in R. For example, maybe you want to sample 100 numbers from a normal distribution with mean = 0, and standard deviation = 1, and then you want to plot a histogram. You can do this right here by using an r code block, like this:
+## Step 1: Load libraries
+
+As a first step, please load `tidyverse`, `ggrepel`, and `maps` libraries. Please note the `ggplot2` library is part of the `tidyverse` library. By running `tidyverse`, you also load `ggplot2` and other libraries. For details on what these libraries offer, please refer to the comments in the code block below.
 
 ```{r}
-samples <- rnorm(100, mean=0, sd=1)
-hist(samples)
+library(tidyverse)
+library(ggrepel)
+library(maps)
 ```
 
-When you knit this R Markdown document, you will see that the histogram is printed to the page, along with the R code. This document can be set up to hide the R code in the webpage, just delete the comment (hashtag) from the cold folding option in the yaml header up top. For purposes of letting yourself see the code, and me see the code, best to keep it the way that it is. You'll learn that all of these things and more can be customized in each R code block.
+
+If you haven't installed these packages, please install them by calling `install.packages(`*[name_of_package]*`)` in the R console. After installing, run the above code block again.
+
+
+## Step 2: Import the data
+
+This is just a one line where you read the csv data and save to a table.
+
+```{r}
+covid_data_tbl <- read_csv("https://opendata.ecdc.europa.eu/covid19/casedistribution/csv")
+```
+
+
+## Challenge 1: Plot COVID-19 confirmed cases worlwide
+
+The objective is to plot the COVID-19 confirmed cases by country for the year 2020. Since there are too many countries to plot, I chose to plot USA against European countries that were highly affected.
+
+```{r plot3, fig.width=10, fig.height=7}
+# Gather a list of all countries from covid data
+all_countries <- c(covid_data_tbl$countriesAndTerritories)
+# Used to denote the desired countries for plotting
+desired_countries <- c("France",
+                       "Germany",
+                       "Spain",
+                       "Austria",
+                       "Belgium",
+                       "Czech_Republic",
+                       "Portugal",
+                       "Belgium",
+                       "Netherlands",
+                       "Switzerland",
+                       "United_Kingdom",
+                       "United_States_of_America")
+# Concatenate all countries with separator = "|"
+countries_string <- paste(desired_countries,collapse = "|")
+# Mark the desired countries for every observation
+covid_data_tbl$List <- ifelse(grepl(countries_string, all_countries), 1, 0)
+
+# Prepare the data
+covid_data_cum_cases <- covid_data_tbl %>%
+  mutate(Date = dmy(dateRep)) %>%
+  # Rename column names since several of the names functions of other libraries
+  rename(Continent = continentExp,
+         Country = countriesAndTerritories, 
+         Cases = cases,
+         Month = month,
+         Day = day,
+         Year = year) %>%
+  # Select relevant columns
+  select(Date, Day, Month, Year, Country, Continent, List, Cases, deaths) %>%
+  # Order the data by country and date
+  arrange(Country, Date) %>%
+  # Filter for desired countries and only year 2020
+  filter(List == 1, Year == 2020) %>%
+  # Perform the cumulative sum for each of the desired countries
+  mutate(cum_sum = ave(Cases, Country, FUN=cumsum))
+
+# Create a separate data frame to gather the maximum number of cases for plot label
+max_cases <- covid_data_cum_cases %>% slice_max(cum_sum) %>%
+  # Format for aesthetics only
+  mutate(max_value = scales::dollar(cum_sum, big.mark = ".", 
+                                     decimal.mark = ",", 
+                                     prefix = "", 
+                                     suffix = " cases"))
+
+# Begin plotting
+covid_data_cum_cases %>%
+  ggplot(aes(x = Date, y = cum_sum, color = Country)) +
+  geom_line(size = 0.5) +
+  expand_limits(y = 0) +
+  # This palette satisfies all desired countries
+  # If using a different palette, consider reducing the number of desired countries
+  scale_color_brewer(palette = "Paired") +
+  # Scale x-axis by month only and label them with the three letters abbreviation
+  scale_x_date(date_breaks = "1 month", date_labels = "%b") +
+  # Scale y-axis by dividing by 1 Million for cleaner visualization
+  scale_y_continuous(labels = scales::dollar_format(scale = 1/1e6, 
+                                                    prefix = "", 
+                                                    suffix = " M")) +
+  # To add text in the plot and make it for more insightful
+  labs(
+    title = "COVID-19 confirmed cases worldwide",
+    subtitle = "United States has had more cases than European countries",
+    x = "Year 2020",
+    y = "Cumulative Cases",
+    color = "Country") +
+  # Labels the maximum number of cases
+  geom_label_repel(aes(x = Date, y = cum_sum, label = cum_sum), 
+                   data = max_cases,
+                   label = max_cases$max_value,
+                   show.legend = FALSE, 
+                   size = 3) +
+  # Uses minimal theme for minimal look
+  theme_minimal() +
+  theme(legend.position  = "bottom", 
+        legend.direction = "horizontal",
+        axis.text.x = element_text(angle = 45),
+        plot.title = element_text(face = "bold"),
+        axis.text = element_text(size = "10"))
+```
+
+
+## Challenge 2: Map COVID-19 mortality rates worldwide
+
+The objective is to visualize the distribution of the mortality rate (deaths / population) with `geom_map()`.
+
+```{r plot4, fig.width=10, fig.height=7}
+# The necessary longitudinal and lateral data can be accessed with this function
+world <- map_data("world")
+
+#Prepare the data
+covid_mortality_rate_tbl <- covid_data_tbl %>%
+  filter(year == 2020) %>%
+  group_by(countriesAndTerritories) %>%
+  # Calculate mortality rate
+  summarise(mortality_rate = sum(deaths/popData2019)) %>%
+  arrange(desc(mortality_rate)) %>%
+  # Set of operations to join properly with world data
+  mutate(across(countriesAndTerritories, str_replace_all, "_", " ")) %>%
+  mutate(countriesAndTerritories = case_when(
+    countriesAndTerritories == "United Kingdom" ~ "UK",
+    countriesAndTerritories == "United States of America" ~ "USA",
+    countriesAndTerritories == "Czechia" ~ "Czech Republic",
+    TRUE ~ countriesAndTerritories)) %>%
+  rename(region = countriesAndTerritories)
+
+# Join the mortality rate data with the world data
+tictoc::tic()
+combined_covid_data <- covid_mortality_rate_tbl %>%
+  right_join(world, by = "region")
+tictoc::toc()
+
+# Begin plotting
+combined_covid_data %>% 
+  ggplot() +
+  # For world map plotting
+  geom_map(aes(long, lat, map_id = region, fill = mortality_rate), 
+           map = world, color="white", size = 0.05) +
+  # Scale with a specified gradient and show % mortality rate
+  scale_fill_gradient(low = "#2D303E",
+                      high = "#CF6E77",
+                      breaks = breaks_extended(8),
+                      labels = scales::percent_format(scale = 100,
+                                                      accuracy = 0.01)) +
+  # To add text in the plot and make it for more insightful
+  labs(
+    title = "Confirmed COVID-19 deaths relative to the size of the population",
+    subtitle = "More than 1.2 Million confirmed COVID-19 deaths worldwide",
+    fill = "Mortality Rate",
+    x = "",
+    y = "") +
+  # Uses map theme for nicer look
+  theme_map()
+```
+  
+
+<center>This concludes the Data Science Basics with `R`!<br /><br />Made with &hearts;<br />~Roy Ruiz~</center>
